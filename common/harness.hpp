@@ -74,4 +74,20 @@ inline void DoNotOptimize(T& value) {
 #endif
 }
 
+template <int... Percentiles, class T>
+inline auto print_percentiles(std::vector<T>& cycles) {
+  static_assert(((Percentiles >= 1 && Percentiles <= 99) && ...),
+                "percentiles must be between 1 and 99");
+  std::array<T, sizeof...(Percentiles)> values{};
+  std::size_t i = 0;
+  for (const int percentile :
+       std::array<int, sizeof...(Percentiles)>{Percentiles...}) {
+    const std::size_t k = (percentile * cycles.size() - 1) / 100;
+    std::nth_element(cycles.begin(), cycles.begin() + k, cycles.end());
+    values[i++] = cycles[k];
+    std::println("p%{} : {} cycles", percentile, cycles[k]);
+  }
+  return values;
+}
+
 };  // Namespace harness
