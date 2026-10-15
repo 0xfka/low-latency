@@ -56,12 +56,12 @@ inline void pin_to_thread(const int thread) {
   cpu_set_t cpuset;
   CPU_ZERO(&cpuset);
   CPU_SET(thread, &cpuset);
-  const int err = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
+  pthread_t t = pthread_self();
+  const int err = pthread_setaffinity_np(t, sizeof(cpuset), &cpuset);
   if (err != 0) [[unlikely]] {
     throw std::system_error(err, std::system_category(),
-                            "pthread_getaffinity_np");
+                            "pthread_setaffinity_np");
   }
-  return;
 }
 /* Google benchmark's DoNotOptimize
  */
