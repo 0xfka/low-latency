@@ -13,10 +13,14 @@ int main() {
   failures += !TEST(UnsortedDuplicatesAndRepeatedRequests,
                     harness::calculate_percentiles<90, 1, 50, 99, 50>(cycles) ==
                         std::array<int, 5>{90, 10, 60, 100, 60});
-  harness::pin_to_thread(0);
+  constexpr int test_thread = 0;
+  harness::pin_to_thread(test_thread);
   pthread_t t = pthread_self();
   cpu_set_t cpuset;
-  failures += !TEST(pintothread,
-                    pthread_getaffinity_np(t, sizeof(cpuset), &cpuset) == 0);
+  if (pthread_getaffinity_np(t, sizeof(cpuset), &cpuset) != 0) {
+    return 1;
+  }
+  failures += !TEST(pintothread, (CPU_ISSET(test_thread, &cpuset) &&
+                                  CPU_COUNT(&cpuset) == 1));
   return failures != 0;
 }
